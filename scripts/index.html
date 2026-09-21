@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+  </head>
+  <body>
+    <script>
+      // Editá esto con la URL pública de tu backend en Railway (sin / final).
+      const BACKEND_BASE_URL = "https://TU-APP.up.railway.app";
+      const TIMEOUT_MS = 15000;
+
+      async function fetchWithTimeout(url, options) {
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
+        try {
+          return await fetch(url, { ...options, signal: controller.signal });
+        } finally {
+          clearTimeout(timer);
+        }
+      }
+
+      async function callStatus(token) {
+        return fetchWithTimeout(`${BACKEND_BASE_URL}/status`, {
+          method: "GET",
+          headers: {
+            "X-API-Key": token,
+            Accept: "application/json",
+          },
+        });
+      }
+
+      async function callQuery(token, question) {
+        return fetchWithTimeout(`${BACKEND_BASE_URL}/query`, {
+          method: "POST",
+          headers: {
+            "X-API-Key": token,
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+          body: JSON.stringify({ question }),
+        });
+      }
+
+      // Éxito -> { ok:true, result } (sin clave "error").
+      // Fallo  -> { ok:false, error } (sin clave "result").
+      // La app detecta error con un substring match sobre '"error":' en el JSON
+      // crudo, así que la clave "error" nunca debe aparecer en una respuesta exitosa.
+      window["ai_edge_gallery_get_result"] = async (data, secret) => {
+        let jsonData;
+        try {
+          jsonData = JSON.parse(data);
+        } catch (e) {
+          return JSON.stringify({ ok: false, error: `data inválido: ${e.message}` });
+        }
+
+        const token = secret || "";
+        if (!token) {
+          return JSON.stringify({ ok: false, error: "Falta la API key del backend." });
+        }
+
+        const action = jsonData.action;
+        if (action !== "status" && action !== "query") {
+          return JSON.stringify({
+            ok: false,
+            error: `action inválida: "${action}". Debe ser "status" o "query".`,
+          });
+        }
+
+        let response;
+        try {
+          if (action === "status") {
+            response = await callStatus(token);
+          } else {
+            const question = (jsonData.question || "").trim();
+            if (!question) {
+              return JSON.stringify({ ok: false, error: "Falta 'question' para action=query." });
+            }
+            response = await callQuery(token, question);
+          }
+        } catch (e) {
+          if (e && e.name === "AbortError") {
+            return JSON.stringify({
+              ok: false,
+              error: `Timeout: el backend no respondió en ${TIMEOUT_MS / 1000}s.`,
+            });
+          }
+          return JSON.stringify({ ok: false, error: `No se pudo contactar al backend: ${e.message}` });
+        }
+
+        if (!response.ok) {
+          let bodyText = "";
+          try {
+            bodyText = await response.text();
+          } catch (_) {
+            // sin body legible, seguimos con string vacío
+          }
+          return JSON.stringify({
+            ok: false,
+            error: `Backend respondió ${response.status} ${response.statusText}: ${bodyText.slice(0, 300)}`,
+          });
+        }
+
+        let payload;
+        try {
+          payload = await response.json();
+        } catch (e) {
+          return JSON.stringify({
+            ok: false,
+            error: `Respuesta del backend no es JSON válido: ${e.message}`,
+          });
+        }
+
+        return JSON.stringify({ ok: true, result: payload });
+      };
+    </script>
+  </body>
+</html>
