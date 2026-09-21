@@ -1,6 +1,6 @@
 ---
 name: brain-core
-description: Connects to a private backend server that can answer questions using custom private data not known to the model, and can report whether that backend server is currently online. Use this skill when the user asks a question that requires private, custom, or up to date information the model does not have, or when the user explicitly asks to check if the backend, server, or service is online, working, or healthy. Do not use this skill for general knowledge questions, math, coding help, creative writing, or anything the model can already answer without contacting an external server.
+description: Connects to a private backend server that stores the user's own private, internal, or custom business data (such as personal records, account information, internal documents, or knowledge specific to the user's own systems), and can report whether that backend server is currently online. Use this skill only when the user asks about their own private or internal data, or explicitly asks to check if the backend, server, or service is online, working, or healthy. Do not use this skill for general knowledge questions, public real-world facts (weather, news, sports scores, public figures, general trivia), math, coding help, creative writing, or anything the model can already answer without contacting an external server.
 metadata:
   require-secret: true
   require-secret-description: Pega tu API key del gateway (GATEWAY_API_KEY o una de GATEWAY_API_KEYS en Railway).
@@ -14,7 +14,7 @@ metadata:
 This skill has two actions. Decide which one to use based on the user's request:
 
 - Use `status` when the user asks whether the backend/server/service is online, working, up, or healthy.
-- Use `query` when the user asks a question that needs private or custom information from the backend.
+- Use `query` when the user asks about their own private, internal, or custom data that this backend stores (e.g. personal records, account info, internal documents) — not public real-world facts like weather, news, or general trivia.
 
 Call the `run_js` tool with the following exact parameters:
 
