@@ -1,6 +1,6 @@
 ---
 name: brain-core
-description: Connects to a private backend server that stores the user's own private, internal, or custom business data (such as personal records, account information, internal documents, or knowledge specific to the user's own systems), and can report whether that backend server is currently online. Use this skill only when the user asks about their own private or internal data, or explicitly asks to check if the backend, server, or service is online, working, or healthy. Do not use this skill for general knowledge questions, public real-world facts (weather, news, sports scores, public figures, general trivia), math, coding help, creative writing, or anything the model can already answer without contacting an external server.
+description: Connects to a private backend server that stores the user's own business or personal records, such as users, customers, accounts, orders, inventory, or internal documents. Use this skill when the user asks things like "how many users/customers/orders do I have", "how many records are registered", "look up my account/customer/order data", "search my internal documents", or any question about counts, records, or data in the user's own system or database. Also use this skill when the user asks to check if the backend, server, or service is online, working, up, or healthy. Do not use this skill for public real-world facts (weather, news, sports scores, public figures, general trivia), math, coding help, creative writing, or anything the model can already answer on its own without checking an external database.
 metadata:
   require-secret: true
   require-secret-description: Pega tu API key del gateway (GATEWAY_API_KEY o una de GATEWAY_API_KEYS en Railway).
@@ -14,7 +14,7 @@ metadata:
 This skill has two actions. Decide which one to use based on the user's request:
 
 - Use `status` when the user asks whether the backend/server/service is online, working, up, or healthy.
-- Use `query` when the user asks about their own private, internal, or custom data that this backend stores (e.g. personal records, account info, internal documents) — not public real-world facts like weather, news, or general trivia.
+- Use `query` when the user asks about counts, records, or data in their own system — such as users, customers, accounts, orders, inventory, or internal documents. Not for public real-world facts like weather, news, or general trivia.
 
 Call the `run_js` tool with the following exact parameters:
 
